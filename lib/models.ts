@@ -194,7 +194,7 @@ export async function generateWithModel(
   platformModel: string
 ): Promise<string> {
   const [platform, model] = platformModel.split('__')
-
+  // console.log("System Prompt: ", systemPrompt)
   switch (platform) {
     case 'google':
       return generateWithGemini(systemPrompt, model)

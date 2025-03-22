@@ -5,7 +5,7 @@ import { CONFIG } from '@/lib/config'
 import { extractAndParseJSON } from '@/lib/utils'
 import { generateWithModel } from '@/lib/models'
 
-export const maxDuration = 60
+export const maxDuration = 120
 
 export async function POST(request: Request) {
   try {
@@ -61,39 +61,49 @@ export async function POST(request: Request) {
     }
 
     const generateSystemPrompt = (articles: Article[], userPrompt: string) => {
-      return `You are a research assistant tasked with creating a comprehensive report based on multiple sources. 
+      return `You are a research assistant tasked with creating a comprehensive report based on multiple sources for parents to gain insights on child's enrichment activities. 
 The report should specifically address this request: "${userPrompt}"
 
-Your report should:
-1. Have a clear title that reflects the specific analysis requested
-2. Begin with a concise executive summary
-3. Be organized into relevant sections based on the analysis requested
-4. Use markdown formatting for emphasis, lists, and structure
-5. Use citations ONLY when necessary for specific claims, statistics, direct quotes, or important facts
-6. Maintain objectivity while addressing the specific aspects requested in the prompt
-7. Compare and contrast the information from sources, noting areas of consensus or points of contention
-8. Showcase key insights, important data, or innovative ideas
+Your report format:
+1. Start with bullet point directly
+2. No duplicated content between bullets
+3. Avoid generic content. Showcase key factors listed the section below, important data, or innovative ideas with facts
+3. Use markdown formatting for emphasis, lists, and structure
+4. Use citations ONLY when necessary for specific claims, statistics, direct quotes, or important facts
+5. Maintain objectivity while addressing the specific aspects requested in the prompt
+6. Compare and contrast the information from sources, noting areas of consensus or points of contention
+
+Your report bullet content should consider the following:
+1. Reputation & Quality Indicators: Highlight if source contains any POSITIVE evidence about provider’s credibility, track record, and parental trust
+- Special Accommodations – Support for special needs, scholarships, financial aid, flexible scheduling.
+
+2. Program Offerings & Accessibility: Highlight if source mentioned program flexibility, suitability, and accessibility. 
+Following aspects to consider but not limited to:
+- # of Offerings Available – More programs provide greater flexibility for parents.
+-  # of Locations – Multiple locations make access easier.
+- Program Age Range – Ensures offerings fit the child’s age group.
+- Skill Levels Supported – Beginner, Intermediate, Advanced, etc.
+- Class Size Limit – Smaller class sizes may indicate more personalized instruction.
+- # of Sessions Per Year – Shows how frequently new enrollments happen.
 
 Here are the source articles to analyze (numbered for citation purposes):
 
 ${articles
-  .map(
-    (article, index) => `
+          .map(
+            (article, index) => `
 [${index + 1}] Title: ${article.title}
 URL: ${article.url}
 Content: ${article.content}
 ---
 `
-  )
-  .join('\n')}
+          )
+          .join('\n')}
 
 Format the report as a JSON object with the following structure:
 {
   "title": "Report title",
-  "summary": "Executive summary (can include markdown)",
   "sections": [
     {
-      "title": "Section title",
       "content": "Section content with markdown formatting and selective citations"
     }
   ],
@@ -134,7 +144,7 @@ CITATION GUIDELINES:
 
     const systemPrompt = generateSystemPrompt(selectedResults, prompt)
 
-    // console.log('Sending prompt to model:', systemPrompt)
+    console.log('Sending prompt to model:', systemPrompt)
     console.log('Model:', model)
 
     try {

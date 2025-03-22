@@ -79,7 +79,7 @@ const retryWithBackoff = async <T,>(
 export default function Home() {
   // Consolidated state management
   const [state, setState] = useState<State>({
-    query: '',
+    query: 'centercourt summer camp',
     timeFilter: 'all',
     results: [],
     selectedResults: [],
@@ -207,7 +207,8 @@ export default function Home() {
       ) {
         const result = prev.results.find((r) => r.id === resultId)
         if (result) {
-          newReportPrompt = `Analyze and summarize the key points from ${result.name}`
+          // newReportPrompt = `Analyze and summarize the key points from ${result.name}`
+          newReportPrompt = `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${result.name}. Each bullet should not exceed 20 words.`
         }
       }
 
@@ -628,10 +629,9 @@ export default function Home() {
           ...prev,
           agentInsights: [
             ...prev.agentInsights,
-            `Selected ${selected.length} diverse sources from ${
-              new Set(
-                selected.map((s: SearchResult) => new URL(s.url).hostname)
-              ).size
+            `Selected ${selected.length} diverse sources from ${new Set(
+              selected.map((s: SearchResult) => new URL(s.url).hostname)
+            ).size
             } unique domains`,
           ],
         }))
@@ -1171,8 +1171,8 @@ export default function Home() {
                     {state.selectedResults.length === 0
                       ? 'Select up to 3 results to generate a report'
                       : state.selectedModel
-                      ? `${state.selectedResults.length} of ${MAX_SELECTIONS} results selected`
-                      : 'Please select a model above to generate a report'}
+                        ? `${state.selectedResults.length} of ${MAX_SELECTIONS} results selected`
+                        : 'Please select a model above to generate a report'}
                   </p>
                   {state.status.generatingReport && (
                     <p>
@@ -1303,13 +1303,13 @@ export default function Home() {
                             prompt={state.reportPrompt}
                           />
                         </div>
-                        
+
                         {/* Scrollable content area with proper height constraint */}
                         <div className='max-h-[800px] overflow-y-auto pr-2' style={{ scrollbarWidth: 'thin' }}>
                           <p className='text-lg text-gray-700 mb-6'>
                             {state.report?.summary}
                           </p>
-                          
+
                           {state.report?.sections?.map((section, index) => (
                             <div key={index} className='space-y-3 border-t pt-4 mb-6'>
                               <h3 className='text-xl font-semibold text-gray-700'>
@@ -1322,7 +1322,7 @@ export default function Home() {
                               </div>
                             </div>
                           ))}
-                          
+
                           {/* Citations Section */}
                           {state.report && <CitationsFooter report={state.report} />}
                         </div>
