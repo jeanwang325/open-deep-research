@@ -78,6 +78,7 @@ export type Status = {
 }
 
 export type State = {
+  originalQuery: string
   query: string
   timeFilter: string
   results: SearchResult[]
@@ -116,11 +117,11 @@ export type SelectionNodeData = BaseNodeData & {
   ) => Promise<
     | { success: boolean; report: any; searchTerms: any; error?: undefined }
     | {
-        success: boolean
-        error: string
-        report?: undefined
-        searchTerms?: undefined
-      }
+      success: boolean
+      error: string
+      report?: undefined
+      searchTerms?: undefined
+    }
     | undefined
   >
 }
@@ -151,11 +152,11 @@ export interface FlowNodeData extends BaseNodeData {
   ) => Promise<
     | { success: boolean; report: any; searchTerms: any; error?: undefined }
     | {
-        success: boolean
-        error: string
-        report?: undefined
-        searchTerms?: undefined
-      }
+      success: boolean
+      error: string
+      report?: undefined
+      searchTerms?: undefined
+    }
     | undefined
   >
   onApprove?: (term?: string) => void

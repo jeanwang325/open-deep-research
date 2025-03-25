@@ -15,7 +15,7 @@ export async function handleLocalFile(
       file.type === 'application/pdf' ||
       file.name.endsWith('.pdf') ||
       file.type ===
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
       file.name.endsWith('.docx')
     ) {
       // Send the file to our parsing endpoint
@@ -67,3 +67,4 @@ export async function handleLocalFile(
 
 export const SUPPORTED_FILE_TYPES =
   '.txt,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+export const SUPPORTED_DATA_TYPES = '.csv'

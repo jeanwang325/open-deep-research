@@ -37,6 +37,7 @@
     "officeparser": "^5.1.1",
     "ollama": "^0.5.12",
     "openai": "^4.80.1",
+    "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^9.0.1",

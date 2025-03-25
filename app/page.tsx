@@ -1,4 +1,5 @@
 'use client'
+import Papa from 'papaparse';
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -38,7 +39,7 @@ import { useToast } from '@/hooks/use-toast'
 import { KnowledgeBaseSidebar } from '@/components/knowledge-base-sidebar'
 import { ReportActions } from '@/components/report-actions'
 import { ModelSelect, DEFAULT_MODEL } from '@/components/model-select'
-import { handleLocalFile, SUPPORTED_FILE_TYPES } from '@/lib/file-upload'
+import { handleLocalFile, SUPPORTED_FILE_TYPES, SUPPORTED_DATA_TYPES } from '@/lib/file-upload'
 import { CitationsFooter } from '@/components/citations-footer'
 
 const timeFilters = [
@@ -79,7 +80,8 @@ const retryWithBackoff = async <T,>(
 export default function Home() {
   // Consolidated state management
   const [state, setState] = useState<State>({
-    query: 'centercourt summer camp',
+    originalQuery: '',
+    query: '',
     timeFilter: 'all',
     results: [],
     selectedResults: [],
@@ -101,6 +103,17 @@ export default function Home() {
       searchQueries: [],
     },
   })
+
+  // Add automatically enable selection of top 3 search results
+  useEffect(() => {
+    if (state.results.length > 0) {
+      const topResults = state.results.slice(0, 3).map((result) => result.id); // Select up to the top 3 results
+      setState((prev) => ({
+        ...prev,
+        selectedResults: topResults,
+      }));
+    }
+  }, [state.results]);
 
   const { toast } = useToast()
 
@@ -124,6 +137,12 @@ export default function Home() {
     },
     []
   )
+  // Automatically update state reportPrompt once th query is available
+  useEffect(() => {
+    if (state.query.trim() && !state.reportPrompt.trim()) {
+      updateState({ reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${state.query}. Each bullet should not exceed 20 words.` });
+    }
+  }, [state.query, state.reportPrompt, updateState]);
 
   // Memoized error handler
   const handleError = useCallback(
@@ -207,7 +226,6 @@ export default function Home() {
       ) {
         const result = prev.results.find((r) => r.id === resultId)
         if (result) {
-          // newReportPrompt = `Analyze and summarize the key points from ${result.name}`
           newReportPrompt = `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${result.name}. Each bullet should not exceed 20 words.`
         }
       }
@@ -224,7 +242,7 @@ export default function Home() {
   const handleSearch = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault()
-      if (!state.query.trim()) return
+      if (!state.originalQuery.trim()) return
 
       const isGeneratingReport =
         state.selectedResults.length > 0 && !state.isAgentMode
@@ -358,7 +376,7 @@ export default function Home() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              query: state.query,
+              query: state.originalQuery,
               timeFilter: state.timeFilter,
             }),
           })
@@ -432,6 +450,13 @@ export default function Home() {
     if (!state.reportPrompt || state.selectedResults.length === 0) return
     updateState({ query: state.reportPrompt })
   }, [state.reportPrompt, state.selectedResults.length, updateState])
+
+  // Automatically trigger generateReport when seleced results is not empty.
+  useEffect(() => {
+    if (state.selectedResults.length > 0 && state.reportPrompt.trim()) {
+      generateReport();
+    }
+  }, [state.selectedResults, state.reportPrompt, generateReport]);
 
   // Memoized agent search handler
   const handleAgentSearch = useCallback(
@@ -748,11 +773,9 @@ export default function Home() {
   )
 
   // Memoized utility functions
-  const handleAddCustomUrl = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
+  const handleAddCustomUrl = useEffect(
+    () => {
       if (!state.newUrl.trim()) return
-
       try {
         new URL(state.newUrl) // Validate URL format
         if (!state.results.some((r) => r.url === state.newUrl)) {
@@ -785,6 +808,61 @@ export default function Home() {
     }))
   }, [])
 
+  // Add csv file upload handler
+
+  const handleCSVFileUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Check if the file is a CSV
+      if (file.type !== 'text/csv') {
+        toast({
+          title: 'Invalid File Type',
+          description: 'Please upload a valid CSV file.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Parse the CSV file
+      Papa.parse(file, {
+        header: true, // Treat the first row as headers
+        skipEmptyLines: true,
+        complete: (results) => {
+          const data = results.data as Array<{ query?: string; newUrl?: string }>;
+
+          // Extract the first query and newUrl from the CSV
+          const firstQuery = data[0]?.query || '';
+          const firstNewUrl = data[0]?.newUrl || '';
+
+          // Update the state with the first query and newUrl
+          if (firstQuery) {
+            updateState({ originalQuery: firstQuery, query: firstQuery });
+            updateState({ reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${firstQuery}. Each bullet should not exceed 20 words.` });
+          }
+          if (firstNewUrl) {
+            updateState({ results: [], selectedResults: [] }); // Clear existing results
+            updateState({ newUrl: firstNewUrl });
+          }
+
+          // Optionally, handle multiple rows (e.g., batch processing)
+          console.log('Parsed CSV Data:', data);
+        },
+        error: (error) => {
+          toast({
+            title: 'CSV Parsing Error',
+            description: error.message,
+            variant: 'destructive',
+          });
+        },
+      });
+
+      // Reset the file input
+      e.target.value = '';
+    },
+    [updateState, toast]
+  );
   // Add file upload handler
   const handleFileUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -946,6 +1024,37 @@ export default function Home() {
             >
               {!state.isAgentMode ? (
                 <>
+                  {/* CSV Upload Button */}
+                  <div className='relative'>
+                    <Input
+                      type='file'
+                      onChange={handleCSVFileUpload}
+                      className='absolute inset-0 opacity-0 cursor-pointer'
+                      accept={SUPPORTED_DATA_TYPES}
+                    />
+                    <Button
+                      type='button'
+                      variant='outline'
+                      className='hidden sm:inline-flex items-center gap-2 pointer-events-none'
+                    >
+                      <UploadIcon className='h-4 w-4' />
+                      Import Data
+                    </Button>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='icon'
+                      className='sm:hidden pointer-events-none'
+                    >
+                      <UploadIcon className='h-4 w-4' />
+                    </Button>
+                    <div className='relative flex-1'>
+                      <div className='pr-8 py-2 px-3 border border-gray-300 rounded-md bg-gray-100 text-gray-700'>
+                        {state.originalQuery || 'No query provided'}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className='flex flex-col sm:flex-row gap-2'>
                     <div className='relative flex-1'>
                       <Input
@@ -955,7 +1064,6 @@ export default function Home() {
                         placeholder='Enter your search query...'
                         className='pr-8'
                       />
-                      <Search className='absolute right-2 top-2 h-5 w-5 text-gray-400' />
                     </div>
 
                     <div className='flex flex-col sm:flex-row gap-2 sm:items-center'>
@@ -1006,12 +1114,12 @@ export default function Home() {
                       onChange={(e) => updateState({ newUrl: e.target.value })}
                       placeholder='Add custom URL...'
                       className='flex-1'
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleAddCustomUrl(e)
-                        }
-                      }}
+                    // onKeyDown={(e) => {
+                    //   if (e.key === 'Enter') {
+                    //     e.preventDefault()
+                    //     handleAddCustomUrl(e)
+                    //   }
+                    // }}
                     />
                     <Button
                       type='button'
@@ -1325,6 +1433,13 @@ export default function Home() {
 
                           {/* Citations Section */}
                           {state.report && <CitationsFooter report={state.report} />}
+                        </div>
+                        {/* Raw JSON Display */}
+                        <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">Raw JSON Format</h3>
+                          <pre className="text-sm text-gray-700 overflow-x-auto">
+                            {JSON.stringify(state.report, null, 2)}
+                          </pre>
                         </div>
                       </CardContent>
                     </Card>

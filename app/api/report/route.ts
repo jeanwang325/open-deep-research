@@ -73,18 +73,20 @@ Your report format:
 5. Maintain objectivity while addressing the specific aspects requested in the prompt
 6. Compare and contrast the information from sources, noting areas of consensus or points of contention
 
-Your report bullet content should consider the following:
-1. Reputation & Quality Indicators: Highlight if source contains any POSITIVE evidence about provider’s credibility, track record, and parental trust
-- Special Accommodations – Support for special needs, scholarships, financial aid, flexible scheduling.
+Your report bullet content should consider the Quality and Program Accessibility:
+1. Reputation & Quality Indicators: Highlight if source contains any POSITIVE evidence about provider’s credibility, track record, and parental trust.
+- Special Accommodations (Support for special needs, scholarships, financial aid, flexible scheduling).
+- Instructor Credentials (Background & rich experience of staff)
+- Honors & Awards.
+- Notable Recomendation by Media, Press, Community Highlights, etc.
 
 2. Program Offerings & Accessibility: Highlight if source mentioned program flexibility, suitability, and accessibility. 
 Following aspects to consider but not limited to:
-- # of Offerings Available – More programs provide greater flexibility for parents.
--  # of Locations – Multiple locations make access easier.
-- Program Age Range – Ensures offerings fit the child’s age group.
-- Skill Levels Supported – Beginner, Intermediate, Advanced, etc.
-- Class Size Limit – Smaller class sizes may indicate more personalized instruction.
-- # of Sessions Per Year – Shows how frequently new enrollments happen.
+- Diverse Program Offerings Available (More programs provide greater flexibility for parents).
+- Flexibility of Locations (Multiple locations make access easier).
+- Wide Age Range.
+- Specify Supported Skill Levels : Suitable for Beginner, Intermediate, Advanced, etc.
+- Class Size or Teacher-student ratio (Smaller class sizes indicate more personalized instruction).
 
 Here are the source articles to analyze (numbered for citation purposes):
 
@@ -144,7 +146,7 @@ CITATION GUIDELINES:
 
     const systemPrompt = generateSystemPrompt(selectedResults, prompt)
 
-    console.log('Sending prompt to model:', systemPrompt)
+    // console.log('Sending prompt to model:', systemPrompt)
     console.log('Model:', model)
 
     try {

@@ -43,6 +43,7 @@ function getGoogleDateRestrict(timeFilter: TimeFilter): string | null {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    // console.log('Search API request body:', body)
     const {
       query,
       timeFilter = 'all',

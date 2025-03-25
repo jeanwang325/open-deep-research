@@ -7,13 +7,13 @@ import {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 const generationJsonConfig = {
-  temperature: 1,
+  temperature: 0,
   maxOutputTokens: 8192,
   responseMimeType: 'application/json',
 }
 
 const generationPlainTextConfig = {
-  temperature: 1,
+  temperature: 0,
   maxOutputTokens: 8192,
   responseMimeType: 'text/plain',
 }
