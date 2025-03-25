@@ -75,10 +75,14 @@ Your report format:
 
 Your report bullet content should consider the Quality and Program Accessibility:
 1. Reputation & Quality Indicators: Highlight if source contains any POSITIVE evidence about provider’s credibility, track record, and parental trust.
-- Special Accommodations (Support for special needs, scholarships, financial aid, flexible scheduling).
-- Instructor Credentials (Background & rich experience of staff)
-- Honors & Awards.
+- Hornor Awards, Accolades, or Recognition.
 - Notable Recomendation by Media, Press, Community Highlights, etc.
+- Parent Ratings & Testimonials.
+- Instructors' Qualifications (Background & rich experience of staff)
+- Curriculum & Methodology (Innovative, engaging, and effective teaching methods) 
+- Safety & Security Measures (Safety protocols, background checks, etc.)
+- Special Accommodations for special needs, scholarships, financial aid, flexible scheduling.
+- Community Involvement & Social Responsibility (Engagement with local community, social causes, etc.)
 
 2. Program Offerings & Accessibility: Highlight if source mentioned program flexibility, suitability, and accessibility. 
 Following aspects to consider but not limited to:

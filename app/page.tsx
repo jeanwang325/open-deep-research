@@ -380,7 +380,6 @@ export default function Home() {
               timeFilter: state.timeFilter,
             }),
           })
-
           if (!res.ok) {
             const errorData = await res
               .json()
@@ -832,22 +831,47 @@ export default function Home() {
         complete: (results) => {
           const data = results.data as Array<{ query?: string; newUrl?: string }>;
 
-          // Extract the first query and newUrl from the CSV
+          // Extract the first query and process all URLs
           const firstQuery = data[0]?.query || '';
-          const firstNewUrl = data[0]?.newUrl || '';
-
-          // Update the state with the first query and newUrl
           if (firstQuery) {
             updateState({ originalQuery: firstQuery, query: firstQuery });
-            updateState({ reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${firstQuery}. Each bullet should not exceed 20 words.` });
+            updateState({
+              reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${firstQuery}. Each bullet should not exceed 20 words.`,
+            });
           }
-          if (firstNewUrl) {
-            updateState({ results: [], selectedResults: [] }); // Clear existing results
-            updateState({ newUrl: firstNewUrl });
+
+          // Process all rows for newUrl
+          const allUrls: SearchResult[] = [];
+          data.forEach((row) => {
+            const newUrls = row.newUrl?.split('|||').map((url) => url.trim()) || [];
+            newUrls.forEach((url) => {
+              try {
+                new URL(url); // Validate URL format
+                const timestamp = Date.now();
+                const newResult: SearchResult = {
+                  id: `custom-${timestamp}-${url}`,
+                  url,
+                  name: url,
+                  snippet: 'Custom URL added by user',
+                  isCustomUrl: true,
+                };
+                allUrls.push(newResult);
+              } catch {
+                console.warn(`Invalid URL skipped: ${url}`);
+              }
+            });
+          });
+
+          // Update the state with all valid URLs
+          if (allUrls.length > 0) {
+            console.log('Update state results');
+            updateState({ selectedResults: [] });
+            updateState({ results: allUrls });
           }
 
           // Optionally, handle multiple rows (e.g., batch processing)
           console.log('Parsed CSV Data:', data);
+          console.log('state results', state.results);
         },
         error: (error) => {
           toast({
