@@ -1,0 +1,13 @@
+anthropic
+ollama
+openai
+upstash-redis
+upstash-ratelimit
+requests
+google-generativeai
+pydantic
+fastapi
+pytest
+pytest-asyncio
+httpx
+pytest-mock

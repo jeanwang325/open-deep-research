@@ -1,0 +1,20 @@
+{
+  "title": "Centercourt Summer Camps: Parent Insights Report",
+  "summary": "This report analyzes Centercourt Summer Camps based on information available on their website. It focuses on program quality and accessibility, highlighting key strengths for parents considering enrollment. The analysis is based solely on the provided source [1].",
+  "sections": [
+    {
+      "title": "Key Strengths and Highlights of Centercourt Summer Camps",
+      "content": "* Offers diverse sports and activities like Ninja, Tennis, and Multi-Sport camps, catering to various age groups (3-16 years) and interests [1].\n* Provides flexible camp options including full-day, half-day, and extended-day programs, accommodating different schedules and needs [1].\n* Operates across multiple locations in New Jersey (Chatham, Lawrence, Marlboro, Montclair, Mt. Olive), increasing accessibility for families [1].\n* Features specialized programs like Ninja Adventure Camp with curriculum focused on building balance, coordination, and confidence [1].\n* Provides early bird discounts and multi-week pricing options at certain locations (Lawrence, Montclair, Mt. Olive), enhancing affordability [1]."
+    }
+  ],
+  "usedSources": [
+    1
+  ],
+  "sources": [
+    {
+      "id": "1",
+      "url": "https://centercourtacademy.com/sports/summer-camps",
+      "name": "Source 1"
+    }
+  ]
+}

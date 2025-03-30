@@ -1,0 +1,20 @@
+{
+  "title": "Centercourt Summer Camps Analysis for Parents",
+  "summary": "This report analyzes Centercourt Summer Camps based on information available on their website [1]. The focus is on program quality and accessibility, highlighting key strengths for parents considering enrollment.",
+  "sections": [
+    {
+      "title": "Key Strengths and Highlights of Centercourt Summer Camps",
+      "content": "* **Diverse Sports & Activities:** Offers a wide range of sports like tennis, ninja, flag football, and multi-sport options across various locations [1].\n* **Age-Specific Programs:** Camps are tailored for different age groups, from Explorer Camps (3-6 years) to Adventure Camps (7-14 years), ensuring age-appropriate activities [1].\n* **Skill Development Focus:** Emphasizes skill-building in specific sports (e.g., tennis technique using ball progression) and overall athletic development (ninja courses) [1].\n* **Flexible Scheduling:** Provides full-day and half-day options, with extended day and aftercare available at select locations like Marlboro and Mt. Olive [1].\n* **Fun and Engaging Environment:** Incorporates \"Famous Fun Fridays\" with themed activities, inflatables, and treats to enhance the camp experience [1]."
+    }
+  ],
+  "usedSources": [
+    1
+  ],
+  "sources": [
+    {
+      "id": "1",
+      "url": "https://centercourtacademy.com/sports/summer-camps/",
+      "name": "Source 1"
+    }
+  ]
+}

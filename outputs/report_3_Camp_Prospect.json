@@ -1,0 +1,20 @@
+{
+  "title": "Camp Prospect Analysis for Parents",
+  "summary": "This report analyzes Camp Prospect based on information available on their website. It focuses on program quality and accessibility, highlighting key strengths for prospective parents.",
+  "sections": [
+    {
+      "title": "Key Strengths and Highlights of Camp Prospect",
+      "content": "* **Play-based learning:** Camp Prospect offers a unique multi-age, play-based environment with activities in music, STEM, outdoor play, and more [1].\n* **Themed sessions:** Each session (Building & Construction, Red White & Blue/Rainbows, Water All Around!) offers varied activities, projects and special guests [1].\n* **Low student-to-counselor ratio:** With a 5:1 ratio, campers receive personalized attention throughout each session [1].\n* **Community focus:** Campers participate in service projects fostering community and compassion, such as supporting local organizations [1].\n* **Positive parent testimonials:** Parents praise the warm, caring staff and engaging activities, with many noting their children's eagerness to return [1]."
+    }
+  ],
+  "usedSources": [
+    1
+  ],
+  "sources": [
+    {
+      "id": "1",
+      "url": "https://www.campprospect.org/",
+      "name": "Source 1"
+    }
+  ]
+}

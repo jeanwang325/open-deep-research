@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "richoo"
+version = "0.1.0"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "requests",
+    "redis",
+    "upstash-redis",
+    "anthropic",
+    "ollama",
+    "openai",
+    "upstash-ratelimit",
+    "google-generativeai",
+    "pydantic",
+    "jinja2",
+    "dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx",
+    "black",
+    "ruff",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["richoo"]
