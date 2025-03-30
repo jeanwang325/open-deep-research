@@ -3,7 +3,7 @@ export const CONFIG = {
   rateLimits: {
     enabled: false, // Flag to enable/disable rate limiting
     search: 10,
-    contentFetch: 20,
+    contentFetch: 50,
     reportGeneration: 5,
     agentOptimizations: 10,
   },

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fetchContentRatelimit } from '@/lib/redis'
 import { CONFIG } from '@/lib/config'
 import { headers } from 'next/headers'
+import { sleep } from 'openai/core.mjs'
 
 export async function POST(request: Request) {
   try {
@@ -71,6 +72,10 @@ export async function POST(request: Request) {
               if (!subResponse.ok) {
                 console.log(subResponse);
                 console.warn(`Failed to fetch content for sub-website ${value}:`, subResponse.status);
+                if (subResponse.status === 429) {
+                  console.log('Rate limit exceeded. Skipping this and Sleep for 1 minute...');
+                  sleep(60000); // Sleep for 1 min if rate limited
+                }
                 continue; // Skip this link if fetching fails
               }
 

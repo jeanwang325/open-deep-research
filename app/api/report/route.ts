@@ -65,7 +65,7 @@ export async function POST(request: Request) {
 The report should specifically address this request: "${userPrompt}"
 
 Your report format:
-1. Start with bullet point directly
+1. ONLY contains bullet points. Each bullet starts with *
 2. No duplicated content between bullets
 3. Avoid generic content. Showcase key factors listed the section below, important data, or innovative ideas with facts
 3. Use markdown formatting for emphasis, lists, and structure
@@ -73,24 +73,24 @@ Your report format:
 5. Maintain objectivity while addressing the specific aspects requested in the prompt
 6. Compare and contrast the information from sources, noting areas of consensus or points of contention
 
-Your report bullet content should consider the Quality and Program Accessibility:
-1. Reputation & Quality Indicators: Highlight if source contains any POSITIVE evidence about provider’s credibility, track record, and parental trust.
-- Hornor Awards, Accolades, or Recognition.
-- Notable Recomendation by Media, Press, Community Highlights, etc.
-- Parent Ratings & Testimonials.
-- Instructors' Qualifications (Background & rich experience of staff)
-- Curriculum & Methodology (Innovative, engaging, and effective teaching methods) 
-- Safety & Security Measures (Safety protocols, background checks, etc.)
-- Special Accommodations for special needs, scholarships, financial aid, flexible scheduling.
-- Community Involvement & Social Responsibility (Engagement with local community, social causes, etc.)
+Your report bullet content should focus on Quality and Program Accessibility. Consider the following but not limited to:
+- Reputation & Quality Indicators: Highlight if source contains any POSITIVE evidence about provider’s credibility, track record, and parental trust.
+  - Hornor Awards, Accolades, or Recognition.
+  - Notable Recomendation by Media, Press, Community Highlights, etc.
+  - Parent Ratings & Testimonials.
+  - Instructors' Qualifications (Background & rich experience of staff)
+  - Curriculum & Methodology (Innovative, engaging, and effective teaching methods) 
+  - Safety & Security Measures (Safety protocols, background checks, etc.)
+  - Special Accommodations for special needs, scholarships, financial aid, flexible scheduling.
+  - Community Involvement & Social Responsibility (Engagement with local community, social causes, etc.)
 
-2. Program Offerings & Accessibility: Highlight if source mentioned program flexibility, suitability, and accessibility. 
+- Program Offerings & Accessibility: Highlight if source mentioned program flexibility, suitability, and accessibility. 
 Following aspects to consider but not limited to:
-- Diverse Program Offerings Available (More programs provide greater flexibility for parents).
-- Flexibility of Locations (Multiple locations make access easier).
-- Wide Age Range.
-- Specify Supported Skill Levels : Suitable for Beginner, Intermediate, Advanced, etc.
-- Class Size or Teacher-student ratio (Smaller class sizes indicate more personalized instruction).
+  - Diverse Program Offerings Available (More programs provide greater flexibility for parents).
+  - Flexibility of Locations (Multiple locations make access easier).
+  - Wide Age Range.
+  - Specify Supported Skill Levels : Suitable for Beginner, Intermediate, Advanced, etc.
+  - Class Size or Teacher-student ratio (Smaller class sizes indicate more personalized instruction).
 
 Here are the source articles to analyze (numbered for citation purposes):
 
@@ -108,8 +108,10 @@ Content: ${article.content}
 Format the report as a JSON object with the following structure:
 {
   "title": "Report title",
+  "summary": "Executive summary (can include markdown)",
   "sections": [
     {
+      "title": "Section title",
       "content": "Section content with markdown formatting and selective citations"
     }
   ],
@@ -117,10 +119,8 @@ Format the report as a JSON object with the following structure:
 }
 
 Use markdown formatting in the content to improve readability:
-- Use **bold** for emphasis
+- Use **bold** for emphasis at the beginning
 - Use bullet points and numbered lists where appropriate
-- Use headings and subheadings with # syntax
-- Include code blocks if relevant
 - Use > for quotations
 - Use --- for horizontal rules where appropriate
 
@@ -150,9 +150,8 @@ CITATION GUIDELINES:
 
     const systemPrompt = generateSystemPrompt(selectedResults, prompt)
 
-    // console.log('Sending prompt to model:', systemPrompt)
     console.log('Model:', model)
-
+    console.log('System prompt:', systemPrompt);
     try {
       const response = await generateWithModel(systemPrompt, platformModel)
 

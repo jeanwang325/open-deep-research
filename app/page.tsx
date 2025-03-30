@@ -1,5 +1,6 @@
 'use client'
 import Papa from 'papaparse';
+import { saveAs } from 'file-saver'; // Install file-saver for file download
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -26,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import type { SearchResult, RankingResult, Status, State } from '@/types'
+import type { Article, SearchResult, RankingResult, Status, State } from '@/types'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CONFIG } from '@/lib/config'
@@ -41,6 +42,7 @@ import { ReportActions } from '@/components/report-actions'
 import { ModelSelect, DEFAULT_MODEL } from '@/components/model-select'
 import { handleLocalFile, SUPPORTED_FILE_TYPES, SUPPORTED_DATA_TYPES } from '@/lib/file-upload'
 import { CitationsFooter } from '@/components/citations-footer'
+import { reportContentRatelimit } from '@/lib/redis';
 
 const timeFilters = [
   { value: 'all', label: 'Any time' },
@@ -140,7 +142,7 @@ export default function Home() {
   // Automatically update state reportPrompt once th query is available
   useEffect(() => {
     if (state.query.trim() && !state.reportPrompt.trim()) {
-      updateState({ reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${state.query}. Each bullet should not exceed 20 words.` });
+      updateState({ reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${state.query}. Each bullet should not exceed 15 words.` });
     }
   }, [state.query, state.reportPrompt, updateState]);
 
@@ -184,6 +186,13 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       })
+      console.log(`fetchContent response status: ${response.status}`)
+      // if response.status === 429, sleep for 1min and retry the fetch
+      if (response.status === 429) {
+        console.log('Rate limit exceeded for fetchContent. Retrying in 1 minute...');
+        await sleep(60000); // Sleep for 1 minute
+        return await fetchContent(url); // Retry the fetch
+      }
 
       if (!response.ok) {
         const errorData = await response
@@ -451,11 +460,11 @@ export default function Home() {
   }, [state.reportPrompt, state.selectedResults.length, updateState])
 
   // Automatically trigger generateReport when seleced results is not empty.
-  useEffect(() => {
-    if (state.selectedResults.length > 0 && state.reportPrompt.trim()) {
-      generateReport();
-    }
-  }, [state.selectedResults, state.reportPrompt, generateReport]);
+  // useEffect(() => {
+  //   if (state.selectedResults.length > 0 && state.reportPrompt.trim()) {
+  //     generateReport();
+  //   }
+  // }, [state.selectedResults, state.reportPrompt, generateReport]);
 
   // Memoized agent search handler
   const handleAgentSearch = useCallback(
@@ -808,7 +817,99 @@ export default function Home() {
   }, [])
 
   // Add csv file upload handler
+  // const handleCSVFileUpload = useCallback(
+  //   async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     const file = e.target.files?.[0];
+  //     if (!file) return;
 
+  //     // Check if the file is a CSV
+  //     if (file.type !== 'text/csv') {
+  //       toast({
+  //         title: 'Invalid File Type',
+  //         description: 'Please upload a valid CSV file.',
+  //         variant: 'destructive',
+  //       });
+  //       return;
+  //     }
+
+  //     // Parse the CSV file
+  //     Papa.parse(file, {
+  //       header: true, // Treat the first row as headers
+  //       skipEmptyLines: true,
+  //       complete: (results) => {
+  //         const data = results.data as Array<{ query?: string; newUrl?: string }>;
+
+  //         // Extract the first query and process all URLs
+  //         const firstQuery = data[0]?.query || '';
+  //         if (firstQuery) {
+  //           updateState({ originalQuery: firstQuery, query: firstQuery });
+  //           updateState({
+  //             reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${firstQuery}. Each bullet should not exceed 20 words.`,
+  //           });
+  //         }
+
+  //         // Process all rows for newUrl
+  //         const allUrls: SearchResult[] = [];
+  //         data.forEach((row) => {
+  //           const newUrls = row.newUrl?.split('|||').map((url) => url.trim()) || [];
+  //           newUrls.forEach((url) => {
+  //             try {
+  //               new URL(url); // Validate URL format
+  //               const timestamp = Date.now();
+  //               const newResult: SearchResult = {
+  //                 id: `custom-${timestamp}-${url}`,
+  //                 url,
+  //                 name: url,
+  //                 snippet: 'Custom URL added by user',
+  //                 isCustomUrl: true,
+  //               };
+  //               allUrls.push(newResult);
+  //             } catch {
+  //               console.warn(`Invalid URL skipped: ${url}`);
+  //             }
+  //           });
+  //         });
+
+  //         // Update the state with all valid URLs
+  //         if (allUrls.length > 0) {
+  //           console.log('Update state results');
+  //           updateState({ selectedResults: [] });
+  //           updateState({ results: allUrls });
+  //         }
+
+  //         // Optionally, handle multiple rows (e.g., batch processing)
+  //         console.log('Parsed CSV Data:', data);
+  //         console.log('state results', state.results);
+  //       },
+  //       error: (error) => {
+  //         toast({
+  //           title: 'CSV Parsing Error',
+  //           description: error.message,
+  //           variant: 'destructive',
+  //         });
+  //       },
+  //     });
+
+  //     // Reset the file input
+  //     e.target.value = '';
+  //   },
+  //   [updateState, toast]
+  // );
+
+  const saveProcessedRecords = (fileName: string, processedRecords: Array<{ originalQuery: string; originalUrl: string; reportRaw: string | object, reportPlain: string }>) => {
+    // Convert processedRecords to JSONL format
+    const jsonlContent = processedRecords
+      .map((record) => JSON.stringify(record)) // Serialize each record as a JSON string
+      .join('\n'); // Join records with newline characters
+
+    // Create a Blob from the JSONL content
+    const blob = new Blob([jsonlContent], { type: 'application/jsonl;charset=utf-8;' });
+
+    // Trigger file download
+    saveAs(blob, fileName || 'processed_records.jsonl');
+  };
+
+  // New csv File upload
   const handleCSVFileUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -828,21 +929,24 @@ export default function Home() {
       Papa.parse(file, {
         header: true, // Treat the first row as headers
         skipEmptyLines: true,
-        complete: (results) => {
+        complete: async (results) => {
           const data = results.data as Array<{ query?: string; newUrl?: string }>;
 
-          // Extract the first query and process all URLs
-          const firstQuery = data[0]?.query || '';
-          if (firstQuery) {
-            updateState({ originalQuery: firstQuery, query: firstQuery });
-            updateState({
-              reportPrompt: `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${firstQuery}. Each bullet should not exceed 20 words.`,
-            });
-          }
+          // Prepare an array to store the results
+          const processedRecords: Array<{
+            originalQuery: string;
+            originalUrl: string;
+            reportRaw: string | object;
+            reportPlain: string;
+          }> = [];
 
-          // Process all rows for newUrl
-          const allUrls: SearchResult[] = [];
-          data.forEach((row) => {
+          for (const row of data) {
+            const query = row.query?.trim();
+            console.log('Processing row:', row);
+            const recordReportPrompt = `Analyze and summarize the key strength and highlights into up to 5 **concise** bullets for ${query}. Each bullet should not exceed 20 words.`;
+            const allUrls: SearchResult[] = [];
+
+            // Process all rows for newUrl
             const newUrls = row.newUrl?.split('|||').map((url) => url.trim()) || [];
             newUrls.forEach((url) => {
               try {
@@ -860,32 +964,103 @@ export default function Home() {
                 console.warn(`Invalid URL skipped: ${url}`);
               }
             });
-          });
+            if (!query || allUrls.length === 0) {
+              console.warn('Skipping record due to missing query or URL:', row);
+              continue;
+            }
+            // Update state with the current query and URL and report Prompt
+            updateState({
+              originalQuery: query,
+              reportPrompt: recordReportPrompt,
+              results: allUrls,
+              selectedResults: allUrls.map((result) => result.id),
+            });
+            const allContent: Array<{
+              url: string;
+              title: string;
+              content: string;
+            }> = [];
+            const allSources: Array<{ url: string; name: string }> = [];
 
-          // Update the state with all valid URLs
-          if (allUrls.length > 0) {
-            console.log('Update state results');
-            updateState({ selectedResults: [] });
-            updateState({ results: allUrls });
+            for (let i = 0; i < allUrls.length; i++) {
+              //extract the url and fetch content 
+              const resultId = allUrls[i];
+              // Fetch content for the URL
+              const currContent = await fetchContent(resultId.url);
+              allContent.push({ url: resultId.url, title: query, content: currContent.content });
+              allSources.push({ url: resultId.url, name: resultId.url });
+            }
+            // Generate Report
+            const generateReportWithRetry = async () => {
+              const requestBody = {
+                selectedResults: allContent,
+                sources: allSources,
+                prompt: `${recordReportPrompt} Provide comprehensive analysis.`,
+                platformModel: state.selectedModel,
+              };
+
+              return await retryWithBackoff(async () => {
+                let res = await fetch('/api/report', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(requestBody),
+                });
+
+                if (res.status === 429) {
+                  console.log('Rate limit exceeded for report generation. Retrying in 1 minute...');
+                  await sleep(60000); // Sleep for 1 minute
+                  res = await fetch('/api/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                  }); // Retry the fetch
+                }
+
+                if (!res.ok) {
+                  const errorData = await res
+                    .json()
+                    .catch(() => ({ error: 'Failed to generate report' }));
+                  throw new Error(
+                    errorData.error || `Failed to generate report: ${res.status}`
+                  );
+                }
+
+                return res.json();
+              });
+            };
+
+            const response = await generateReportWithRetry();
+            console.log('Response: ', response)
+            console.log('Report generation response:', response.sections);
+            const report_plain = response.sections
+              .map((section) => `${section.title}<br>${section.content}`)
+              .join('<br>')
+              .replace(/\n/g, '<br>');
+            console.log('Highlight plain:', report_plain);
+            processedRecords.push({
+              originalQuery: query,
+              originalUrl: row.newUrl,
+              reportRaw: JSON.stringify(response),
+              reportPlain: report_plain,
+            });
+            console.log(`Processed record: ${processedRecords.length}`);
           }
+          // Save the processed records to a file
+          const timestamp = Date.now()
+          saveProcessedRecords(`output-${timestamp}.jsonl`, processedRecords);
 
-          // Optionally, handle multiple rows (e.g., batch processing)
-          console.log('Parsed CSV Data:', data);
-          console.log('state results', state.results);
-        },
-        error: (error) => {
           toast({
-            title: 'CSV Parsing Error',
-            description: error.message,
-            variant: 'destructive',
+            title: 'File Saved',
+            description: 'The processed records have been saved as a JSONL file.',
+            variant: 'success',
           });
-        },
+        }
       });
 
       // Reset the file input
       e.target.value = '';
     },
-    [updateState, toast]
+    [fetchContent, retryWithBackoff, updateState, state.selectedModel, toast]
   );
   // Add file upload handler
   const handleFileUpload = useCallback(
