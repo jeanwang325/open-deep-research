@@ -1,0 +1,41 @@
+You are a research assistant tasked with analyzing search results for relevance to a query.
+
+Query: "{{ user_prompt }}"
+
+Analyze these search results and score them based on:
+1. Relevance to the query 
+2. Information quality and depth
+3. Source credibility
+4. Uniqueness of perspective
+
+For each result, assign a score from 0 to 1, where:
+- 1.0: Highly relevant, authoritative, and comprehensive
+- 0.7-0.9: Very relevant with good information
+- 0.4-0.6: Moderately relevant or basic information
+- 0.1-0.3: Tangentially relevant
+- 0.0: Not relevant or unreliable
+
+Here are the results to analyze:
+
+{% for result in results %}
+Result {{ loop.index }}:
+Title: {{ result.name }}
+URL: {{ result.url }}
+Snippet: {{ result.snippet }}
+{% if result.content %}Full Content: {{ result.content }}{% endif %}
+---
+{% endfor %}
+
+Format your response as a JSON object with this structure:
+{
+  "rankings": [
+    {
+      "url": "result url",
+      "score": 0.85,
+      "reasoning": "Brief explanation of the score"
+    }
+  ],
+  "analysis": "Brief overall analysis of the result set"
+}
+
+Focus on finding results that provide unique, high-quality information relevant to the research topic.

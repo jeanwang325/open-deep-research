@@ -3,9 +3,8 @@ API endpoint for generating reports from selected articles.
 """
 import logging
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter
 
 from pydantic import BaseModel
 
@@ -13,9 +12,13 @@ from richoo.lib.redis import report_content_ratelimit
 from richoo.lib.config import CONFIG
 from richoo.lib.utils import extract_and_parse_json
 from richoo.lib.models import generate_with_model
-from richoo.types.index import Article, ModelVariant, Report
+from richoo.types.index import Article, ModelVariant
 from richoo.lib.prompts import prompt_manager
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 class ReportRequest(BaseModel):
@@ -78,7 +81,7 @@ async def generate_report(request: ReportRequest) -> JSONResponse:
 
         # Generate report using template
         system_prompt = prompt_manager.get_prompt(
-            "provider_insights_prompt.j2",
+            "provider_insights_system.j2",
             articles=request.selected_results,
             user_prompt=request.prompt
         )
